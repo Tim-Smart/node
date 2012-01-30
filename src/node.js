@@ -572,18 +572,23 @@
   NativeModule.prototype.deprecate = function(method, message) {
     var original = this.exports[method];
     var self = this;
+    var warned = false;
 
     Object.defineProperty(this.exports, method, {
       enumerable: false,
       value: function() {
-        message = self.id + '.' + method + ' is deprecated. ' + (message || '');
+        if (!warned) {
+          warned = true;
 
-        if ((new RegExp('\\b' + self.id + '\\b')).test(process.env.NODE_DEBUG))
-          console.trace(message);
-        else
-          console.error(message);
+          message = self.id + '.' + method + ' is deprecated. ' + (message || '');
 
-        self.exports[method] = original;
+          if ((new RegExp('\\b' + self.id + '\\b')).test(process.env.NODE_DEBUG))
+            console.trace(message);
+          else
+            console.error(message);
+
+          self.exports[method] = original;
+        }
         return original.apply(this, arguments);
       }
     });
