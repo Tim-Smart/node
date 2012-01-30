@@ -574,23 +574,27 @@
     var self = this;
     var warned = false;
 
+    function deprecateWrapper () {
+      if (!warned) {
+        warned = true;
+
+        message = self.id + '.' + method + ' is deprecated. '+ (message || '');
+
+        if ((new RegExp('\\b' + self.id + '\\b')).test(process.env.NODE_DEBUG)) {
+          console.trace(message);
+        } else {
+          console.error(message);
+        }
+
+        self.exports[method] = original;
+      }
+
+      return original.apply(this, arguments);
+    }
+
     Object.defineProperty(this.exports, method, {
       enumerable: false,
-      value: function() {
-        if (!warned) {
-          warned = true;
-
-          message = self.id + '.' + method + ' is deprecated. ' + (message || '');
-
-          if ((new RegExp('\\b' + self.id + '\\b')).test(process.env.NODE_DEBUG))
-            console.trace(message);
-          else
-            console.error(message);
-
-          self.exports[method] = original;
-        }
-        return original.apply(this, arguments);
-      }
+      value: deprecateWrapper
     });
   };
 
